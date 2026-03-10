@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Interativo - HTML, CSS e JavaScript</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.2em;
+        }
+
+        .header-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .score-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            min-width: 150px;
+            text-align: center;
+        }
+
+        .progress-container {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 15px;
+            background: #f8f9fa;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #555;
+            transition: all 0.3s ease;
+            min-width: 120px;
+            border: 2px solid transparent;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #fff;
+        }
+
+        .tab .stats {
+            display: block;
+            font-size: 0.8em;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+
+        .tab .stats.correct {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .tab.active .stats.correct {
+            color: #fff;
+        }
+
+        .quiz-section {
+            display: none;
+        }
+
+        .quiz-section.active {
+            display: block;
+        }
+
+        .question-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border-left: 5px solid #667eea;
+            transition: all 0.3s ease;
+        }
+
+        .question-card.correct {
+            border-left-color: #4CAF50;
+            background: #f1f8e9;
+        }
+
+        .question-card.incorrect {
+            border-left-color: #f44336;
+            background: #ffebee;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .question-number {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .correct .question-number {
+            color: #4CAF50;
+        }
+
+        .incorrect .question-number {
+            color: #f44336;
+        }
+
+        .question-status {
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .status-correct {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .status-incorrect {
+            background: #f44336;
+            color: white;
+        }
+
+        .status-pending {
+            background: #ff9800;
+            color: white;
+        }
+
+        .question-text {
+            font-size: 1.2em;
+            color: #333;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            display: flex;
+            align-items: center;
+            padding: 15px 20px;
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .option:hover:not(.disabled) {
+            border-color: #667eea;
+            background: #f0f3ff;
+            transform: translateX(5px);
+        }
+
+        .option.selected {
+            border-color: #4CAF50;
+            background: #e8f5e9;
+        }
+
+        .option.selected.correct-answer {
+            border-color: #4CAF50;
+            background: #c8e6c9;
+        }
+
+        .option.selected.wrong-answer {
+            border-color: #f44336;
+            background: #ffcdd2;
+        }
+
+        .option.disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .option input[type="radio"] {
+            margin-right: 15px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+
+        .option.disabled input[type="radio"] {
+            cursor: not-allowed;
+        }
+
+        .option label {
+            flex: 1;
+            cursor: pointer;
+            font-size: 1.1em;
+            color: #444;
+        }
+
+        .option.disabled label {
+            cursor: not-allowed;
+        }
+
+        .answer-indicator {
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        .correct-badge {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .wrong-badge {
+            color: #f44336;
+            font-weight: bold;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .nav-btn:not(:disabled) {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .nav-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .nav-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .reset-btn {
+            background: #f44336;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 0.5;
+        }
+
+        .reset-btn:hover {
+            background: #d32f2f;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+        }
+
+        .result-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .result-modal.active {
+            display: flex;
+        }
+
+        .result-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .result-content h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+
+        .final-score {
+            font-size: 4em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 20px 0;
+            line-height: 1;
+        }
+
+        .category-results {
+            margin: 30px 0;
+            text-align: left;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .category-result {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 1.1em;
+        }
+
+        .category-result:last-child {
+            border-bottom: none;
+        }
+
+        .category-result .correct {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .accuracy-message {
+            font-size: 1.2em;
+            margin: 20px 0;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea20 0%, #764ba220 100%);
+            border-radius: 10px;
+        }
+
+        .close-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .close-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .tab {
+                font-size: 0.9em;
+                padding: 10px;
+            }
+            
+            .question-text {
+                font-size: 1.1em;
+            }
+            
+            .option {
+                padding: 12px 15px;
+            }
+            
+            .navigation-buttons {
+                flex-direction: column;
+            }
+            
+            .reset-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Quiz Interativo</h1>
+        <div class="subtitle">150 Questões de Múltipla Escolha</div>
+        
+        <div class="header-stats">
+            <div class="score-box">
+                <div>Pontuação</div>
+                <div style="font-size: 1.5em;"><span id="totalScore">0</span>/150</div>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="progress-stats">
+                    <span>Respondidas: <span id="questionsAnswered">0</span>/150</span>
+                    <span>Acertos: <span id="accuracyPercentage">0</span>%</span>
+                </div>
+            </div>
+            <button class="reset-btn" onclick="resetQuiz()">↺ Reiniciar Quiz</button>
+        </div>
+
+        <div class="category-tabs">
+            <button class="tab active" onclick="changeCategory('html')" id="tabHtml">
+                   HTML
+                <span class="stats" id="htmlStats">0/50</span>
+            </button>
+            <button class="tab" onclick="changeCategory('css')" id="tabCss">
+                  CSS
+                <span class="stats" id="cssStats">0/50</span>
+            </button>
+            <button class="tab" onclick="changeCategory('javascript')" id="tabJs">
+                   JavaScript
+                <span class="stats" id="jsStats">0/50</span>
+            </button>
+        </div>
+
+        <!-- HTML Section -->
+        <div id="htmlSection" class="quiz-section active">
+            <div id="htmlQuestions"></div>
+        </div>
+
+        <!-- CSS Section -->
+        <div id="cssSection" class="quiz-section">
+            <div id="cssQuestions"></div>
+        </div>
+
+        <!-- JavaScript Section -->
+        <div id="jsSection" class="quiz-section">
+            <div id="jsQuestions"></div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button class="nav-btn" id="prevBtn" onclick="navigateQuestion('prev')" disabled>← Anterior</button>
+            <button class="nav-btn" id="nextBtn" onclick="navigateQuestion('next')">Próxima →</button>
+        </div>
+    </div>
+
+    <div class="result-modal" id="resultModal">
+        <div class="result-content">
+            <h2>🎉 Parabéns!</h2>
+            <div class="final-score" id="finalScore">0/150</div>
+            <div class="category-results" id="categoryResults"></div>
+            <div class="accuracy-message" id="accuracyMessage"></div>
+            <button class="close-btn" onclick="closeResults()">Ver Resultados</button>
+        </div>
+    </div>
+
+    <script>
+        // Questões de HTML (50)
+        const htmlQuestions = [
+            { question: "O que significa a sigla HTML?", 
+              options: ["Hyper Text Markup Language", "High Tech Modern Language", "Hyper Transfer Markup Language", "Home Tool Markup Language"], 
+              answer: 0 },
+            { question: "Qual tag é usada para criar um link em HTML?", 
+              options: ["&lt;link&gt;", "&lt;a&gt;", "&lt;href&gt;", "&lt;url&gt;"], 
+              answer: 1 },
+            { question: "Qual tag é usada para inserir uma imagem?", 
+              options: ["&lt;img&gt;", "&lt;image&gt;", "&lt;pic&gt;", "&lt;src&gt;"], 
+              answer: 0 },
+            { question: "Qual atributo define o endereço de um link?", 
+              options: ["src", "link", "href", "url"], 
+              answer: 2 },
+            { question: "Qual tag é usada para criar uma lista não ordenada?", 
+              options: ["&lt;ol&gt;", "&lt;ul&gt;", "&lt;li&gt;", "&lt;list&gt;"], 
+              answer: 1 },
+            { question: "Qual tag define o cabeçalho principal (título) de uma página?", 
+              options: ["&lt;head&gt;", "&lt;header&gt;", "&lt;h1&gt;", "&lt;title&gt;"], 
+              answer: 2 },
+            { question: "Qual tag é usada para criar um parágrafo?", 
+              options: ["&lt;p&gt;", "&lt;par&gt;", "&lt;paragraph&gt;", "&lt;text&gt;"], 
+              answer: 0 },
+            { question: "Qual tag é usada para criar uma linha horizontal?", 
+              options: ["&lt;br&gt;", "&lt;hr&gt;", "&lt;line&gt;", "&lt;hline&gt;"], 
+              answer: 1 },
+            { question: "Qual tag é usada para criar uma quebra de linha?", 
+              options: ["&lt;br&gt;", "&lt;lb&gt;", "&lt;break&gt;", "&lt;newline&gt;"], 
+              answer: 0 },
+            { question: "Qual atributo define o texto alternativo para uma imagem?", 
+              options: ["title", "alt", "description", "caption"], 
+              answer: 1 },
+            { question: "Qual tag define o corpo do documento HTML?", 
+              options: ["&lt;body&gt;", "&lt;main&gt;", "&lt;content&gt;", "&lt;section&gt;"], 
+              answer: 0 },
+            { question: "Qual tag define uma tabela em HTML?", 
+              options: ["&lt;table&gt;", "&lt;tab&gt;", "&lt;grid&gt;", "&lt;tr&gt;"], 
+              answer: 0 },
+            { question: "Qual tag define uma linha em uma tabela?", 
+              options: ["&lt;td&gt;", "&lt;tr&gt;", "&lt;th&gt;", "&lt;row&gt;"], 
+              answer: 1 },
+            { question: "Qual tag define uma célula em uma tabela?", 
+              options: ["&lt;td&gt;", "&lt;tr&gt;", "&lt;th&gt;", "&lt;cell&gt;"], 
+              answer: 0 },
+            { question: "Qual tag é usada para criar um formulário?", 
+              options: ["&lt;form&gt;", "&lt;input&gt;", "&lt;field&gt;", "&lt;button&gt;"], 
+              answer: 0 },
+            { question: "Qual tipo de input cria um campo de texto?", 
+              options: ["text", "input", "field", "string"], 
+              answer: 0 },
+            { question: "Qual tag define um botão em HTML?", 
+              options: ["&lt;btn&gt;", "&lt;button&gt;", "&lt;click&gt;", "&lt;input type='button'&gt;"], 
+              answer: 1 },
+            { question: "Qual atributo define o valor de um input?", 
+              options: ["value", "data", "content", "text"], 
+              answer: 0 },
+            { question: "Qual tag define uma lista ordenada?", 
+              options: ["&lt;ol&gt;", "&lt;ul&gt;", "&lt;li&gt;", "&lt;order&gt;"], 
+              answer: 0 },
+            { question: "Qual tag define um item de lista?", 
+              options: ["&lt;item&gt;", "&lt;li&gt;", "&lt;list-item&gt;", "&lt;it&gt;"], 
+              answer: 1 },
+            { question: "Qual tag é usada para definir o título da página na aba do navegador?", 
+              options: ["&lt;title&gt;", "&lt;head&gt;", "&lt;h1&gt;", "&lt;caption&gt;"], 
+              answer: 0 },
+            { question: "Qual tag é usada para criar um comentário em HTML?", 
+              options: ["&lt;!-- --&gt;", "//", "/* */", "#"], 
+              answer: 0 },
+            { question: "Qual atributo é usado para identificar um elemento de forma única?", 
+              options: ["class", "id", "name", "key"], 
+              answer: 1 },
+            { question: "Qual tag define um cabeçalho de nível 2?", 
+              options: ["&lt;h2&gt;", "&lt;header2&gt;", "&lt;heading2&gt;", "&lt;h&gt;2&lt;/h&gt;"], 
+              answer: 0 },
+            { question: "Qual tag é usada para enfatizar texto (itálico)?", 
+              options: ["&lt;b&gt;", "&lt;i&gt;", "&lt;em&gt;", "&lt;italic&gt;"], 
+              answer: 1 },
+            { question: "Qual tag é usada para texto em negrito?", 
+              options: ["&lt;b&gt;", "&lt;strong&gt;", "Ambas", "Nenhuma"], 
+              answer: 2 },
+            { question: "Qual tag define uma seção de navegação?", 
+              options: ["&lt;nav&gt;", "&lt;menu&gt;", "&lt;navigation&gt;", "&lt;links&gt;"], 
+              answer: 0 },
+            { question: "Qual tag define um rodapé?", 
+              options: ["&lt;footer&gt;", "&lt;bottom&gt;", "&lt;foot&gt;", "&lt;base&gt;"], 
+              answer: 0 },
+            { question: "Qual tag define um artigo independente?", 
+              options: ["&lt;article&gt;", "&lt;post&gt;", "&lt;content&gt;", "&lt;section&gt;"], 
+              answer: 0 },
+            { question: "Qual tag define conteúdo lateral?", 
+              options: ["&lt;sidebar&gt;", "&lt;aside&gt;", "&lt;left&gt;", "&lt;right&gt;"], 
+              answer: 1 },
+            { question: "Qual atributo especifica o URL para um link?", 
+              options: ["src", "href", "link", "url"], 
+              answer: 1 },
+            { question: "Qual tag é usada para incorporar áudio?", 
+              options: ["&lt;audio&gt;", "&lt;music&gt;", "&lt;sound&gt;", "&lt;mp3&gt;"], 
+              answer: 0 },
+            { question: "Qual tag é usada para incorporar vídeo?", 
+              options: ["&lt;video&gt;", "&lt;movie&gt;", "&lt;media&gt;", "&lt;film&gt;"], 
+              answer: 0 },
+            { question: "Qual tag define uma linha horizontal temática?", 
+              options: ["&lt;hr&gt;", "&lt;br&gt;", "&lt;line&gt;", "&lt;divider&gt;"], 
+              answer: 0 },
+            { question: "Qual tag é usada para abreviações?", 
+              options: ["&lt;abbr&gt;", "&lt;short&gt;", "&lt;acronym&gt;", "&lt;abv&gt;"], 
+              answer: 0 },
+            { question: "Qual tag define endereço de contato?", 
+              options: ["&lt;address&gt;", "&lt;contact&gt;", "&lt;info&gt;", "&lt;location&gt;"], 
+              answer: 0 },
+            { question: "Qual tag define citação em bloco?", 
+              options: ["&lt;blockquote&gt;", "&lt;quote&gt;", "&lt;citation&gt;", "&lt;q&gt;"], 
+              answer: 0 },
+            { question: "Qual tag define código de computador?", 
+              options: ["&lt;code&gt;", "&lt;computer&gt;", "&lt;program&gt;", "&lt;script&gt;"], 
+              answer: 0 },
+            { question: "Qual tag define texto pré-formatado?", 
+              options: ["&lt;pre&gt;", "&lt;format&gt;", "&lt;text&gt;", "&lt;fixed&gt;"], 
+              answer: 0 },
+            { question: "Qual tag define uma citação curta?", 
+              options: ["&lt;q&gt;", "&lt;quote&gt;", "&lt;short&gt;", "&lt;cite&gt;"], 
+              answer: 0 },
+            { question: "Qual atributo define o charset da página?", 
+              options: ["charset", "encoding", "set", "char"], 
+              answer: 0 },
+            { question: "Qual tag define metadados sobre o documento?", 
+              options: ["&lt;meta&gt;", "&lt;data&gt;", "&lt;info&gt;", "&lt;head&gt;"], 
+              answer: 0 },
+            { question: "Qual tag define estilo CSS interno?", 
+              options: ["&lt;style&gt;", "&lt;css&gt;", "&lt;design&gt;", "&lt;format&gt;"], 
+              answer: 0 },
+            { question: "Qual tag define script JavaScript?", 
+              options: ["&lt;script&gt;", "&lt;js&gt;", "&lt;javascript&gt;", "&lt;code&gt;"], 
+              answer: 0 },
+            { question: "Qual atributo é usado em &lt;form&gt; para especificar o método HTTP?", 
+              options: ["method", "type", "action", "submit"], 
+              answer: 0 },
+            { question: "Qual atributo é usado em &lt;form&gt; para especificar o destino dos dados?", 
+              options: ["action", "target", "method", "submit"], 
+              answer: 0 },
+            { question: "Qual tipo de input cria uma caixa de seleção (checkbox)?", 
+              options: ["checkbox", "check", "box", "select"], 
+              answer: 0 },
+            { question: "Qual tipo de input cria um botão de opção (radio)?", 
+              options: ["radio", "option", "select", "button"], 
+              answer: 0 },
+            { question: "Qual tag define uma legenda para um &lt;fieldset&gt;?", 
+              options: ["&lt;legend&gt;", "&lt;caption&gt;", "&lt;title&gt;", "&lt;label&gt;"], 
+              answer: 0 },
+            { question: "Qual tag define uma opção em uma lista suspensa?", 
+              options: ["&lt;option&gt;", "&lt;item&gt;", "&lt;select&gt;", "&lt;choice&gt;"], 
+              answer: 0 }
+        ];
+
+        // Questões de CSS (50)
+        const cssQuestions = [
+            { question: "O que significa a sigla CSS?", 
+              options: ["Cascading Style Sheets", "Creative Style System", "Computer Style Sheets", "Colorful Style Sheets"], 
+              answer: 0 },
+            { question: "Qual propriedade muda a cor do texto?", 
+              options: ["text-color", "color", "font-color", "foreground-color"], 
+              answer: 1 },
+            { question: "Qual propriedade muda o tamanho da fonte?", 
+              options: ["font-size", "text-size", "size", "font-height"], 
+              answer: 0 },
+            { question: "Qual propriedade define a família da fonte?", 
+              options: ["font", "font-family", "typeface", "text-font"], 
+              answer: 1 },
+            { question: "Qual propriedade define a cor de fundo?", 
+              options: ["background", "bgcolor", "background-color", "color-background"], 
+              answer: 2 },
+            { question: "Como centralizar texto horizontalmente?", 
+              options: ["align: center", "text-align: center", "center: true", "vertical-align: center"], 
+              answer: 1 },
+            { question: "Qual propriedade adiciona espaçamento interno?", 
+              options: ["margin", "padding", "spacing", "inner-space"], 
+              answer: 1 },
+            { question: "Qual propriedade adiciona espaçamento externo?", 
+              options: ["margin", "padding", "spacing", "outer-space"], 
+              answer: 0 },
+            { question: "Qual propriedade define a largura de um elemento?", 
+              options: ["width", "size", "length", "max-width"], 
+              answer: 0 },
+            { question: "Qual propriedade define a altura de um elemento?", 
+              options: ["height", "size", "length", "max-height"], 
+              answer: 0 },
+            { question: "Qual propriedade define bordas arredondadas?", 
+              options: ["border-radius", "round-border", "corner-radius", "border-curve"], 
+              answer: 0 },
+            { question: "Qual propriedade define o tipo de display?", 
+              options: ["display", "view", "show", "type"], 
+              answer: 0 },
+            { question: "Qual valor de display cria um layout em bloco?", 
+              options: ["inline", "block", "flex", "grid"], 
+              answer: 1 },
+            { question: "Qual valor de display cria um layout flexível?", 
+              options: ["flex", "block", "inline-flex", "grid"], 
+              answer: 0 },
+            { question: "Qual propriedade define a direção dos itens em flexbox?", 
+              options: ["direction", "flex-direction", "flex-flow", "flex-wrap"], 
+              answer: 1 },
+            { question: "Qual propriedade justifica itens no eixo principal em flexbox?", 
+              options: ["align-items", "justify-content", "align-content", "justify-items"], 
+              answer: 1 },
+            { question: "Qual propriedade alinha itens no eixo transversal em flexbox?", 
+              options: ["align-items", "justify-content", "align-content", "justify-items"], 
+              answer: 0 },
+            { question: "Qual propriedade define a posição de um elemento?", 
+              options: ["position", "place", "location", "index"], 
+              answer: 0 },
+            { question: "Qual valor de position mantém o elemento fixo na tela?", 
+              options: ["fixed", "absolute", "relative", "sticky"], 
+              answer: 0 },
+            { question: "Qual propriedade define a ordem de empilhamento (z-index)?", 
+              options: ["z-index", "stack-order", "layer", "index"], 
+              answer: 0 },
+            { question: "Qual propriedade define a opacidade de um elemento?", 
+              options: ["opacity", "transparent", "alpha", "visibility"], 
+              answer: 0 },
+            { question: "Qual propriedade adiciona uma sombra ao texto?", 
+              options: ["text-shadow", "font-shadow", "shadow-text", "drop-shadow"], 
+              answer: 0 },
+            { question: "Qual propriedade adiciona uma sombra à caixa?", 
+              options: ["box-shadow", "element-shadow", "shadow-box", "drop-shadow"], 
+              answer: 0 },
+            { question: "Qual propriedade define a imagem de fundo?", 
+              options: ["background-image", "bg-image", "image-background", "background-img"], 
+              answer: 0 },
+            { question: "Qual propriedade repete a imagem de fundo?", 
+              options: ["background-repeat", "repeat-bg", "bg-repeat", "image-repeat"], 
+              answer: 0 },
+            { question: "Qual propriedade controla o tamanho da imagem de fundo?", 
+              options: ["background-size", "bg-size", "size-bg", "image-size"], 
+              answer: 0 },
+            { question: "Qual pseudo-classe seleciona um link não visitado?", 
+              options: [":link", ":visited", ":hover", ":active"], 
+              answer: 0 },
+            { question: "Qual pseudo-classe seleciona um elemento ao passar o mouse?", 
+              options: [":hover", ":mouse", ":over", ":focus"], 
+              answer: 0 },
+            { question: "Qual propriedade define a espessura da fonte?", 
+              options: ["font-weight", "text-weight", "boldness", "font-thickness"], 
+              answer: 0 },
+            { question: "Qual propriedade transforma texto em maiúsculas/minúsculas?", 
+              options: ["text-transform", "font-transform", "case-transform", "transform-text"], 
+              answer: 0 },
+            { question: "Qual propriedade decora o texto (sublinhado, etc)?", 
+              options: ["text-decoration", "font-decoration", "decoration", "text-style"], 
+              answer: 0 },
+            { question: "Qual unidade é relativa ao tamanho da fonte do elemento pai?", 
+              options: ["em", "rem", "px", "%"], 
+              answer: 0 },
+            { question: "Qual unidade é relativa ao tamanho da fonte do elemento raiz?", 
+              options: ["rem", "em", "px", "%"], 
+              answer: 0 },
+            { question: "Qual propriedade define o tipo de cursor?", 
+              options: ["cursor", "pointer", "mouse", "hand"], 
+              answer: 0 },
+            { question: "Qual propriedade define a largura da borda?", 
+              options: ["border-width", "border-size", "width-border", "border-thickness"], 
+              answer: 0 },
+            { question: "Qual propriedade define o estilo da borda?", 
+              options: ["border-style", "border-type", "style-border", "border-shape"], 
+              answer: 0 },
+            { question: "Qual propriedade define a cor da borda?", 
+              options: ["border-color", "color-border", "border-colour", "border-rgb"], 
+              answer: 0 },
+            { question: "Qual propriedade define o alinhamento vertical?", 
+              options: ["vertical-align", "align-vertical", "v-align", "valign"], 
+              answer: 0 },
+            { question: "Qual propriedade define o espaçamento entre letras?", 
+              options: ["letter-spacing", "text-spacing", "char-spacing", "font-spacing"], 
+              answer: 0 },
+            { question: "Qual propriedade define o espaçamento entre palavras?", 
+              options: ["word-spacing", "text-spacing", "space-between", "gap"], 
+              answer: 0 },
+            { question: "Qual propriedade define a altura da linha?", 
+              options: ["line-height", "text-height", "font-height", "row-height"], 
+              answer: 0 },
+            { question: "Qual propriedade define o recuo da primeira linha?", 
+              options: ["text-indent", "indent", "first-line-indent", "paragraph-indent"], 
+              answer: 0 },
+            { question: "Qual propriedade controla como o conteúdo transborda?", 
+              options: ["overflow", "overflow-content", "content-overflow", "scroll"], 
+              answer: 0 },
+            { question: "Qual valor de overflow adiciona barras de rolagem?", 
+              options: ["scroll", "auto", "visible", "hidden"], 
+              answer: 0 },
+            { question: "Qual propriedade define a visibilidade de um elemento?", 
+              options: ["visibility", "display", "opacity", "hidden"], 
+              answer: 0 },
+            { question: "Qual seletor seleciona elementos por ID?", 
+              options: ["#id", ".id", "*id", "&id"], 
+              answer: 0 },
+            { question: "Qual seletor seleciona elementos por classe?", 
+              options: [".class", "#class", "*class", "&class"], 
+              answer: 0 },
+            { question: "Qual pseudo-elemento seleciona a primeira linha de um texto?", 
+              options: ["::first-line", ":first-line", "::first", "::line"], 
+              answer: 0 },
+            { question: "Qual pseudo-elemento seleciona a primeira letra?", 
+              options: ["::first-letter", ":first-letter", "::first", "::letter"], 
+              answer: 0 },
+            { question: "Qual propriedade cria animações?", 
+              options: ["animation", "keyframes", "transition", "move"], 
+              answer: 0 }
+        ];
+
+        // Questões de JavaScript (50)
+        const jsQuestions = [
+            { question: "Qual método escreve no console do navegador?", 
+              options: ["console.log()", "print()", "log.console()", "write()"], 
+              answer: 0 },
+            { question: "Qual palavra-chave declara uma variável?", 
+              options: ["var", "let", "const", "Todas as anteriores"], 
+              answer: 3 },
+            { question: "Qual operador é usado para comparação estrita (valor e tipo)?", 
+              options: ["==", "===", "=", "!=="], 
+              answer: 1 },
+            { question: "Qual método adiciona um elemento ao final de um array?", 
+              options: ["push()", "pop()", "shift()", "unshift()"], 
+              answer: 0 },
+            { question: "Qual método remove o último elemento de um array?", 
+              options: ["push()", "pop()", "shift()", "unshift()"], 
+              answer: 1 },
+            { question: "Qual estrutura de repetição executa um bloco enquanto uma condição for verdadeira?", 
+              options: ["for", "while", "do-while", "forEach"], 
+              answer: 1 },
+            { question: "Qual função é usada para exibir uma caixa de alerta?", 
+              options: ["alert()", "message()", "popup()", "box()"], 
+              answer: 0 },
+            { question: "Qual método converte uma string para número inteiro?", 
+              options: ["parseInt()", "parseFloat()", "Number()", "toInteger()"], 
+              answer: 0 },
+            { question: "Qual propriedade retorna o comprimento de uma string?", 
+              options: ["length", "size", "count", "len"], 
+              answer: 0 },
+            { question: "Qual método junta elementos de um array em uma string?", 
+              options: ["join()", "concat()", "merge()", "combine()"], 
+              answer: 0 },
+            { question: "Qual método divide uma string em array?", 
+              options: ["split()", "divide()", "separate()", "break()"], 
+              answer: 0 },
+            { question: "Qual operador é usado para incremento?", 
+              options: ["++", "--", "+=1", "+1"], 
+              answer: 0 },
+            { question: "Qual palavra-chave declara uma função?", 
+              options: ["function", "def", "func", "define"], 
+              answer: 0 },
+            { question: "Como comentar uma linha em JavaScript?", 
+              options: ["//", "/* */", "#", "<!-- -->"], 
+              answer: 0 },
+            { question: "Qual método seleciona um elemento pelo ID?", 
+              options: ["getElementById()", "querySelector()", "getElement()", "byId()"], 
+              answer: 0 },
+            { question: "Qual propriedade altera o conteúdo HTML de um elemento?", 
+              options: ["innerHTML", "textContent", "innerText", "content"], 
+              answer: 0 },
+            { question: "Qual evento ocorre quando o usuário clica em um elemento?", 
+              options: ["onclick", "onmouseclick", "onpress", "ontap"], 
+              answer: 0 },
+            { question: "Qual método adiciona um evento a um elemento?", 
+              options: ["addEventListener()", "onEvent()", "attachEvent()", "listen()"], 
+              answer: 0 },
+            { question: "Qual objeto representa o navegador?", 
+              options: ["window", "document", "screen", "navigator"], 
+              answer: 0 },
+            { question: "Qual objeto representa a página web?", 
+              options: ["document", "window", "page", "html"], 
+              answer: 0 },
+            { question: "Qual método converte JSON para objeto?", 
+              options: ["JSON.parse()", "JSON.stringify()", "JSON.toObject()", "JSON.convert()"], 
+              answer: 0 },
+            { question: "Qual método converte objeto para JSON?", 
+              options: ["JSON.stringify()", "JSON.parse()", "JSON.toString()", "JSON.toJSON()"], 
+              answer: 0 },
+            { question: "Qual palavra-chave é usada para criar uma constante?", 
+              options: ["const", "let", "var", "constant"], 
+              answer: 0 },
+            { question: "Qual tipo de dado representa verdadeiro/falso?", 
+              options: ["boolean", "number", "string", "object"], 
+              answer: 0 },
+            { question: "Qual método retorna o maior valor de uma lista?", 
+              options: ["Math.max()", "Math.min()", "Math.highest()", "Math.greatest()"], 
+              answer: 0 },
+            { question: "Qual método retorna o menor valor de uma lista?", 
+              options: ["Math.min()", "Math.max()", "Math.lowest()", "Math.smallest()"], 
+              answer: 0 },
+            { question: "Qual método arredonda um número para o inteiro mais próximo?", 
+              options: ["Math.round()", "Math.floor()", "Math.ceil()", "Math.trunc()"], 
+              answer: 0 },
+            { question: "Qual método arredonda um número para baixo?", 
+              options: ["Math.floor()", "Math.round()", "Math.ceil()", "Math.trunc()"], 
+              answer: 0 },
+            { question: "Qual método arredonda um número para cima?", 
+              options: ["Math.ceil()", "Math.floor()", "Math.round()", "Math.trunc()"], 
+              answer: 0 },
+            { question: "Qual método gera um número aleatório?", 
+              options: ["Math.random()", "Math.randomInt()", "Math.rand()", "Math.rnd()"], 
+              answer: 0 },
+            { question: "Qual estrutura define um bloco de código para tratar erros?", 
+              options: ["try-catch", "error-handler", "catch-error", "exception"], 
+              answer: 0 },
+            { question: "Qual método é usado para depuração (debug)?", 
+              options: ["debugger", "break", "pause", "stop"], 
+              answer: 0 },
+            { question: "Qual operador verifica o tipo de uma variável?", 
+              options: ["typeof", "type", "instanceof", "isType"], 
+              answer: 0 },
+            { question: "Qual método remove o primeiro elemento de um array?", 
+              options: ["shift()", "unshift()", "pop()", "splice()"], 
+              answer: 0 },
+            { question: "Qual método adiciona um elemento no início do array?", 
+              options: ["unshift()", "shift()", "push()", "splice()"], 
+              answer: 0 },
+            { question: "Qual loop é usado para iterar sobre propriedades de um objeto?", 
+              options: ["for...in", "for...of", "forEach", "for"], 
+              answer: 0 },
+            { question: "Qual loop é usado para iterar sobre valores iteráveis (arrays)?", 
+              options: ["for...of", "for...in", "forEach", "for"], 
+              answer: 0 },
+            { question: "Qual palavra-chave é usada para herança em classes?", 
+              options: ["extends", "inherits", "super", "prototype"], 
+              answer: 0 },
+            { question: "Qual palavra-chave chama o construtor da classe pai?", 
+              options: ["super()", "parent()", "base()", "this()"], 
+              answer: 0 },
+            { question: "Qual método define o tempo de espera para executar uma função?", 
+              options: ["setTimeout()", "setInterval()", "delay()", "wait()"], 
+              answer: 0 },
+            { question: "Qual método executa uma função repetidamente em intervalos?", 
+              options: ["setInterval()", "setTimeout()", "repeat()", "interval()"], 
+              answer: 0 },
+            { question: "Qual objeto fornece data e hora?", 
+              options: ["Date", "Time", "Clock", "Calendar"], 
+              answer: 0 },
+            { question: "Qual método retorna o ano atual?", 
+              options: ["getFullYear()", "getYear()", "getFullYear", "now.getYear()"], 
+              answer: 0 },
+            { question: "Qual método é usado para fazer requisições HTTP?", 
+              options: ["fetch()", "request()", "http()", "ajax()"], 
+              answer: 0 },
+            { question: "Qual objeto representa uma promessa em JavaScript?", 
+              options: ["Promise", "Future", "Defer", "Async"], 
+              answer: 0 },
+            { question: "Qual palavra-chave define uma função assíncrona?", 
+              options: ["async", "await", "defer", "promise"], 
+              answer: 0 },
+            { question: "Qual palavra-chave espera por uma promessa?", 
+              options: ["await", "async", "wait", "then"], 
+              answer: 0 },
+            { question: "Qual método é usado para adicionar um item ao localStorage?", 
+              options: ["setItem()", "addItem()", "store()", "save()"], 
+              answer: 0 },
+            { question: "Qual método recupera um item do localStorage?", 
+              options: ["getItem()", "retrieve()", "load()", "fetch()"], 
+              answer: 0 },
+            { question: "Qual operador é usado para espalhar elementos de um array?", 
+              options: ["...", "spread", "expand", "concat"], 
+              answer: 0 }
+        ];
+
+        // Estado do quiz
+        let currentCategory = 'html';
+        let currentQuestionIndex = 0;
+        let userAnswers = {
+            html: new Array(50).fill(null),
+            css: new Array(50).fill(null),
+            javascript: new Array(50).fill(null)
+        };
+        let questionResults = {
+            html: new Array(50).fill(null),
+            css: new Array(50).fill(null),
+            javascript: new Array(50).fill(null)
+        };
+
+        // Inicialização
+        function initQuiz() {
+            renderQuestions('html', htmlQuestions);
+            renderQuestions('css', cssQuestions);
+            renderQuestions('javascript', jsQuestions);
+            updateAllStats();
+            updateNavigation();
+        }
+
+        // Renderizar questões
+        function renderQuestions(category, questions) {
+            const section = document.getElementById(category + 'Section');
+            const container = document.getElementById(category + 'Questions');
+            container.innerHTML = '';
+
+            questions.forEach((q, index) => {
+                const questionCard = document.createElement('div');
+                questionCard.className = 'question-card';
+                questionCard.id = `${category}-q${index}`;
+                
+                const selectedOption = userAnswers[category][index];
+                const isCorrect = questionResults[category][index];
+                
+                // Adicionar classe baseada no resultado
+                if (isCorrect === true) {
+                    questionCard.classList.add('correct');
+                } else if (isCorrect === false) {
+                    questionCard.classList.add('incorrect');
+                }
+                
+                let optionsHtml = '';
+                q.options.forEach((opt, optIndex) => {
+                    const isSelected = selectedOption === optIndex;
+                    let optionClass = 'option';
+                    
+                    if (selectedOption !== null) {
+                        optionClass += ' disabled';
+                        if (isSelected) {
+                            if (isCorrect) {
+                                optionClass += ' selected correct-answer';
+                            } else {
+                                optionClass += ' selected wrong-answer';
+                            }
+                        }
+                    }
+                    
+                    optionsHtml += `
+                        <div class="${optionClass}" onclick="selectOption('${category}', ${index}, ${optIndex})">
+                            <input type="radio" name="${category}-q${index}" value="${optIndex}" ${isSelected ? 'checked' : ''} ${selectedOption !== null ? 'disabled' : ''}>
+                            <label>${String.fromCharCode(65 + optIndex)}. ${opt}</label>
+                            ${isSelected && selectedOption !== null ? 
+                                `<span class="answer-indicator ${isCorrect ? 'correct-badge' : 'wrong-badge'}">
+                                    ${isCorrect ? '✓ Correto' : '✗ Incorreto'}
+                                </span>` : ''}
+                        </div>
+                    `;
+                });
+
+                const statusText = selectedOption !== null 
+                    ? (isCorrect ? '✓ Correta' : '✗ Incorreta')
+                    : '⏳ Pendente';
+                
+                const statusClass = selectedOption !== null 
+                    ? (isCorrect ? 'status-correct' : 'status-incorrect')
+                    : 'status-pending';
+
+                questionCard.innerHTML = `
+                    <div class="question-header">
+                        <span class="question-number">Questão ${index + 1} de 50</span>
+                        <span class="question-status ${statusClass}">
+                            ${statusText}
+                        </span>
+                    </div>
+                    <div class="question-text">${index + 1}. ${q.question}</div>
+                    <div class="options">
+                        ${optionsHtml}
+                    </div>
+                `;
+                
+                container.appendChild(questionCard);
+            });
+        }
+
+        // Selecionar opção
+        function selectOption(category, questionIndex, optionIndex) {
+            // Se já respondeu, não permitir alterar
+            if (userAnswers[category][questionIndex] !== null) {
+                return;
+            }
+            
+            // Salvar resposta
+            userAnswers[category][questionIndex] = optionIndex;
+            
+            // Verificar se está correta
+            const questions = category === 'html' ? htmlQuestions : 
+                             category === 'css' ? cssQuestions : jsQuestions;
+            const isCorrect = questions[questionIndex].answer === optionIndex;
+            questionResults[category][questionIndex] = isCorrect;
+            
+            // Atualizar UI
+            renderQuestions(category, questions);
+            updateAllStats();
+            
+            // Verificar se completou todas as questões
+            checkQuizCompletion();
+        }
+
+        // Atualizar estatísticas
+        function updateAllStats() {
+            let totalAnswered = 0;
+            let totalCorrect = 0;
+            
+            // Calcular totais por categoria
+            ['html', 'css', 'javascript'].forEach(cat => {
+                const answered = userAnswers[cat].filter(a => a !== null).length;
+                const correct = questionResults[cat].filter(r => r === true).length;
+                
+                totalAnswered += answered;
+                totalCorrect += correct;
+                
+                // Atualizar stats das categorias
+                document.getElementById(cat + 'Stats').textContent = `${correct}/50`;
+            });
+            
+            // Atualizar estatísticas gerais
+            document.getElementById('totalScore').textContent = totalCorrect;
+            document.getElementById('questionsAnswered').textContent = totalAnswered;
+            
+            const accuracy = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
+            document.getElementById('accuracyPercentage').textContent = accuracy;
+            
+            const progressPercentage = (totalAnswered / 150) * 100;
+            document.getElementById('progressFill').style.width = progressPercentage + '%';
+        }
+
+        // Mudar categoria
+        function changeCategory(category) {
+            currentCategory = category;
+            currentQuestionIndex = 0;
+            
+            // Atualizar tabs
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.getElementById('tab' + category.charAt(0).toUpperCase() + category.slice(1)).classList.add('active');
+            
+            // Atualizar seções
+            document.querySelectorAll('.quiz-section').forEach(section => section.classList.remove('active'));
+            document.getElementById(category + 'Section').classList.add('active');
+            
+            // Rolar para o topo
+            window.scrollTo(0, 0);
+            
+            // Atualizar navegação
+            updateNavigation();
+        }
+
+        // Navegar entre questões
+        function navigateQuestion(direction) {
+            const totalQuestions = 50;
+            
+            if (direction === 'next' && currentQuestionIndex < totalQuestions - 1) {
+                currentQuestionIndex++;
+            } else if (direction === 'prev' && currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+            }
+            
+            // Rolar para a questão atual
+            const questionElement = document.getElementById(`${currentCategory}-q${currentQuestionIndex}`);
+            if (questionElement) {
+                questionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            updateNavigation();
+        }
+
+        // Atualizar botões de navegação
+        function updateNavigation() {
+            document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
+            document.getElementById('nextBtn').disabled = currentQuestionIndex === 49;
+        }
+
+        // Verificar se quiz está completo
+        function checkQuizCompletion() {
+            const totalAnswered = Object.values(userAnswers).reduce((acc, cat) => 
+                acc + cat.filter(a => a !== null).length, 0);
+            
+            if (totalAnswered === 150) {
+                showResults();
+            }
+        }
+
+        // Mostrar resultados
+        function showResults() {
+            const modal = document.getElementById('resultModal');
+            const totalCorrect = Object.values(questionResults).reduce((acc, cat) => 
+                acc + cat.filter(r => r === true).length, 0);
+            
+            document.getElementById('finalScore').textContent = `${totalCorrect}/150`;
+            
+            const accuracy = ((totalCorrect / 150) * 100).toFixed(1);
+            
+            let categoryResults = '';
+            const categories = ['HTML', 'CSS', 'JavaScript'];
+            categories.forEach((cat, index) => {
+                const catKey = cat.toLowerCase();
+                const correct = questionResults[catKey].filter(r => r === true).length;
+                const percentage = (correct / 50 * 100).toFixed(1);
+                categoryResults += `
+                    <div class="category-result">
+                        <strong>${cat}:</strong>
+                        <span class="${correct >= 35 ? 'correct' : ''}">${correct}/50 (${percentage}%)</span>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('categoryResults').innerHTML = categoryResults;
+            document.getElementById('accuracyMessage').innerHTML = 
+                `Taxa de acertos: <strong>${accuracy}%</strong><br>${getPerformanceMessage(accuracy)}`;
+            
+            modal.classList.add('active');
+        }
+
+        // Mensagem de desempenho
+        function getPerformanceMessage(accuracy) {
+            if (accuracy >= 90) return "🏆 Excelente! Você é um verdadeiro expert!";
+            if (accuracy >= 80) return "🌟 Muito bom! Seu conhecimento é impressionante!";
+            if (accuracy >= 70) return "📚 Bom trabalho! Continue praticando!";
+            if (accuracy >= 60) return "👍 Vamos estudar mais um pouco!";
+            return "💪 Continue firme nos estudos! A prática leva à perfeição!";
+        }
+
+        // Fechar resultados
+        function closeResults() {
+            document.getElementById('resultModal').classList.remove('active');
+        }
+
+        // Reiniciar quiz
+        function resetQuiz() {
+            if (confirm('Tem certeza que deseja reiniciar o quiz? Todo o seu progresso será perdido.')) {
+                userAnswers = {
+                    html: new Array(50).fill(null),
+                    css: new Array(50).fill(null),
+                    javascript: new Array(50).fill(null)
+                };
+                questionResults = {
+                    html: new Array(50).fill(null),
+                    css: new Array(50).fill(null),
+                    javascript: new Array(50).fill(null)
+                };
+                
+                renderQuestions('html', htmlQuestions);
+                renderQuestions('css', cssQuestions);
+                renderQuestions('javascript', jsQuestions);
+                updateAllStats();
+                
+                currentQuestionIndex = 0;
+                updateNavigation();
+            }
+        }
+
+        // Iniciar quiz quando a página carregar
+        window.onload = initQuiz;
+    </script>
+</body>
+</html>
