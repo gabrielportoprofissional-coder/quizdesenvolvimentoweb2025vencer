@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quiz Interativo - HTML, CSS e JavaScript</title>
     <style>
+        /* Mesmo CSS da versão anterior, mantido igual */
         * {
             margin: 0;
             padding: 0;
@@ -130,15 +131,6 @@
             font-size: 0.8em;
             margin-top: 5px;
             opacity: 0.8;
-        }
-
-        .tab .stats.correct {
-            color: #4CAF50;
-            font-weight: bold;
-        }
-
-        .tab.active .stats.correct {
-            color: #fff;
         }
 
         .quiz-section {
@@ -492,7 +484,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Quiz Interativo</h1>
+        <h1>📚 Quiz Interativo</h1>
         <div class="subtitle">150 Questões de Múltipla Escolha</div>
         
         <div class="header-stats">
@@ -514,16 +506,16 @@
 
         <div class="category-tabs">
             <button class="tab active" onclick="changeCategory('html')" id="tabHtml">
-                   HTML
+                📄 HTML
                 <span class="stats" id="htmlStats">0/50</span>
             </button>
             <button class="tab" onclick="changeCategory('css')" id="tabCss">
-                  CSS
+                🎨 CSS
                 <span class="stats" id="cssStats">0/50</span>
             </button>
-            <button class="tab" onclick="changeCategory('javascript')" id="tabJs">
-                   JavaScript
-                <span class="stats" id="jsStats">0/50</span>
+            <button class="tab" onclick="changeCategory('javascript')" id="tabJavascript">
+                ⚡ JavaScript
+                <span class="stats" id="javascriptStats">0/50</span>
             </button>
         </div>
 
@@ -538,8 +530,8 @@
         </div>
 
         <!-- JavaScript Section -->
-        <div id="jsSection" class="quiz-section">
-            <div id="jsQuestions"></div>
+        <div id="javascriptSection" class="quiz-section">
+            <div id="javascriptQuestions"></div>
         </div>
 
         <div class="navigation-buttons">
@@ -868,7 +860,7 @@
         ];
 
         // Questões de JavaScript (50)
-        const jsQuestions = [
+        const javascriptQuestions = [
             { question: "Qual método escreve no console do navegador?", 
               options: ["console.log()", "print()", "log.console()", "write()"], 
               answer: 0 },
@@ -1039,15 +1031,16 @@
         function initQuiz() {
             renderQuestions('html', htmlQuestions);
             renderQuestions('css', cssQuestions);
-            renderQuestions('javascript', jsQuestions);
+            renderQuestions('javascript', javascriptQuestions);
             updateAllStats();
             updateNavigation();
         }
 
         // Renderizar questões
         function renderQuestions(category, questions) {
-            const section = document.getElementById(category + 'Section');
             const container = document.getElementById(category + 'Questions');
+            if (!container) return;
+            
             container.innerHTML = '';
 
             questions.forEach((q, index) => {
@@ -1130,7 +1123,7 @@
             
             // Verificar se está correta
             const questions = category === 'html' ? htmlQuestions : 
-                             category === 'css' ? cssQuestions : jsQuestions;
+                             category === 'css' ? cssQuestions : javascriptQuestions;
             const isCorrect = questions[questionIndex].answer === optionIndex;
             questionResults[category][questionIndex] = isCorrect;
             
@@ -1156,7 +1149,10 @@
                 totalCorrect += correct;
                 
                 // Atualizar stats das categorias
-                document.getElementById(cat + 'Stats').textContent = `${correct}/50`;
+                const statsElement = document.getElementById(cat + 'Stats');
+                if (statsElement) {
+                    statsElement.textContent = `${correct}/50`;
+                }
             });
             
             // Atualizar estatísticas gerais
@@ -1286,7 +1282,7 @@
                 
                 renderQuestions('html', htmlQuestions);
                 renderQuestions('css', cssQuestions);
-                renderQuestions('javascript', jsQuestions);
+                renderQuestions('javascript', javascriptQuestions);
                 updateAllStats();
                 
                 currentQuestionIndex = 0;
